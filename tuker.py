@@ -1,57 +1,30 @@
 #!/usr/bin/env python
+""" Folow for new series on Lost-film """
 # -*- coding: utf-8 -*-
 
-import sys
 from grab import Grab
-import urllib2
-import requests
-from pprint import pprint
-import re
 from bs4 import BeautifulSoup
-from HTMLParser import HTMLParser as hparser
-
-some_list = []
-
-class my_pars(hparser):
-    def handle_starttag(self, tag, attrs):
-        print "Encountered a start tag:", tag
-    def handle_endtag(self, tag):
-        print "Encountered an end tag:", tag
-    def handle_data(self, data):
-        print "Encountered some data:", data
-        some_list.append(data)
 
 def get_url():
-    g = Grab()
-    g.setup(url='https://www.lostfilm.tv/browse.php?cat=236', log_file = 'temp.html')
-    g.request()
-   
-parser = my_pars()
-def pars_url_file():
-    list_of_serial = []
-    file = open('temp.html', 'r')
-    for x, line in enumerate(file):
-        if "t_episode_title" in line:
-            parser.feed(line) 
-    file.close() 
-    for number in some_list:
-        try:
-            number.decode('ascii')
-            if '(' in number:
-                list_of_serial.append(number)
-        except UnicodeDecodeError:
-            pass
-    print list_of_serial
-
+    """  Get source code of site and save it to temp file """
+    get_source = Grab()
+    get_source.setup(url='https://www.lostfilm.tv/browse.php?cat=236',
+                     log_file='temp.html')
+    get_source.request()
 def beauti_pars():
-    file = open('temp.html', 'r')
-    soup = BeautifulSoup(file, 'html.parser')
-    print soup.prettify()
-
-
+    """ Take content information about number and name of series """
+    list_of_content = []
+    source_code = open('temp.html', 'r')
+    soup = BeautifulSoup(source_code, 'html.parser')
+    # print soup.prettify()
+    some_temp = soup.findAll('div', attrs={'class':'t_row'})
+    for content in some_temp:
+        list_of_content.append(content.findAll('span', attrs={'':''}))
+    source_code.close()
+    for element in list_of_content:
+        print element[2].getText(), element[6].getText()
 
 if __name__ == "__main__":
     get_url()
-    pars_url_file()
+    # pars_url_file()
     beauti_pars()
-
