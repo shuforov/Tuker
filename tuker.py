@@ -70,9 +70,11 @@ class Tuker(object):
             check_box_id.append(element[0])
             if counter % 10 == 0:
                 print "---------------------------"
-                chosen = raw_input("To add serial as favorite enter id,\
- if not just press Enter...").split(",")
-                if len(chosen[0]) != 0:
+                chosen = raw_input("To add serial as favorite enter id,\n\
+to stop add type 'stop',\nto continue press Enter...\n").split(",")
+                if 'stop' in chosen:
+                    break
+                elif len(chosen[0]) != 0:
                     for element in chosen:
                         if int(element) in check_box_id:
                             chosen_serials.append(int(element))
@@ -121,12 +123,21 @@ class Tuker(object):
         for element in list_of_content:
             print element[2].getText(), element[6].getText()
 
+    @staticmethod
+    def exit():
+        """ Exit from app """
+        return False
+
 
 def main():
     """ Main function """
     my_serial = Tuker()
-    my_serial.create_f_table()
-    my_serial.create_favorite()
+    buttons = {'Q': my_serial.exit()}
+    status = True
+    while status:
+        input_status = raw_input("(A)Add serial to favorite \
+(C)Chack new series (Q)Quit\n")
+        status = buttons[input_status]
 
 if __name__ == "__main__":
     main()
