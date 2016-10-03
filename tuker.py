@@ -13,6 +13,9 @@ class Tuker(object):
         # Create favorite db
         self.favorite_sql = sqlite3.connect('favorite.db')
         self.favorite_cursor = self.favorite_sql.cursor()
+        # Take place for db in memory, connect it and activate cursor
+        self.data_name_link = sqlite3.connect(':memory:')
+        self.cursor_data = self.data_name_link.cursor()
 
     def create_f_table(self):
         """ Create favorite table in favorite.db file"""
@@ -48,23 +51,42 @@ class Tuker(object):
             counter = counter + 1
         return name_and_link
 
+    def add_serial_to_db(self, chosen_serials):
+        """ Add chosen element from serials db to favorite db """
+        # Add all chosen serials from serial.db to favorite.db
+        id_aveilable = []
+        for element in self.favorite_cursor.execute(
+                'SELECT * FROM favorite ORDER BY url'):
+            id_aveilable.append(element[0])
+        for element in chosen_serials:
+            self.cursor_data.execute('SELECT * FROM serials WHERE id=?',
+                                     (str(element),))
+            self.favorite_cursor.execute(
+                'INSERT INTO favorite VALUES (?, ?, ?)',
+                self.cursor_data.fetchone())
+        self.favorite_sql.commit()
+        # Output list of chosed serials to favorite
+        for element in self.favorite_cursor.execute(
+                'SELECT * FROM favorite ORDER BY url'):
+            print element
+
     def create_favorite(self):
         """ Create list of favorite serials """
-        # Take place for db in memory, connect it and activate cursor
-        data_name_link = sqlite3.connect(':memory:')
-        cursor_data = data_name_link.cursor()
         # Create table in db memory
-        cursor_data.execute(
-            '''CREATE TABLE serials (id integer, name text, url text)''')
-        data_name_link.commit()
+        try:
+            self.cursor_data.execute(
+                '''CREATE TABLE serials (id integer, name text, url text)''')
+            self.data_name_link.commit()
+        except sqlite3.OperationalError:
+            print "The table already exist"
         # Add element to table
-        cursor_data.executemany("INSERT INTO serials VALUES (?, ?, ?)",
-                                self.get_available_serials())
+        self.cursor_data.executemany("INSERT INTO serials VALUES (?, ?, ?)",
+                                     self.get_available_serials())
         # Take id of available serials
         counter = 1
         chosen_serials = []
         check_box_id = []
-        for element in cursor_data.execute(
+        for element in self.cursor_data.execute(
                 'SELECT * FROM serials ORDER BY url'):
             print element[0], element[1]
             check_box_id.append(element[0])
@@ -90,17 +112,7 @@ to stop add type 'stop',\nto continue press Enter...\n").split(",")
             print "---------------------------"
             print "Not one of the serial list was not chose"
         else:
-            # Add all chosen serials from serial.db to favorite.db
-            for element in chosen_serials:
-                cursor_data.execute('SELECT * FROM serials WHERE id=?',
-                                    (str(element),))
-                self.favorite_cursor.execute(
-                    'INSERT INTO favorite VALUES (?, ?, ?)',
-                    cursor_data.fetchone())
-            # Output list of chosed serials to favorite
-            for element in self.favorite_cursor.execute(
-                    'SELECT * FROM favorite ORDER BY url'):
-                print element
+            self.add_serial_to_db(chosen_serials)
 
     @staticmethod
     def get_url_of_serial():
@@ -132,12 +144,14 @@ to stop add type 'stop',\nto continue press Enter...\n").split(",")
 def main():
     """ Main function """
     my_serial = Tuker()
-    buttons = {'Q': my_serial.exit()}
     status = True
     while status:
         input_status = raw_input("(A)Add serial to favorite \
 (C)Chack new series (Q)Quit\n")
-        status = buttons[input_status]
+        if input_status == 'Q':
+            status = my_serial.exit()
+        elif input_status == 'A':
+            my_serial.create_favorite()
 
 if __name__ == "__main__":
     main()
