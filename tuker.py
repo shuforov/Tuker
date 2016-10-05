@@ -1,11 +1,9 @@
-#!/usr/bin/env python
 """ Folow for new series on Lost-film """
 # -*- coding: utf-8 -*-
 
 import sqlite3
 from grab import Grab
 from bs4 import BeautifulSoup
-
 
 class Tuker(object):
     """ Check the new series of serial """
@@ -144,6 +142,10 @@ to stop add type 'stop',\nto continue press Enter...\n").split(",")
 def main():
     """ Main function """
     my_serial = Tuker()
+    try:
+        my_serial.create_f_table()
+    except sqlite3.OperationalError:
+        print "Table favorite already exist"
     status = True
     while status:
         input_status = raw_input("(A)Add serial to favorite \
