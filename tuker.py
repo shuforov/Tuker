@@ -112,26 +112,27 @@ to stop add type 'stop',\nto continue press Enter...\n").split(",")
         else:
             self.add_serial_to_db(chosen_serials)
 
-    @staticmethod
-    def get_url_of_serial():
+    def chack_update(self):
         """  Get source code of site and save it to temp file """
-        get_source = Grab()
-        get_source.setup(url='https://www.lostfilm.tv/browse.php?cat=236',
-                         log_file='temp.html')
-        get_source.request()
-
-    @staticmethod
-    def beauti_pars():
-        """ Take content information about number and name of series """
-        source_code = open('temp.html', 'r')
-        soup = BeautifulSoup(source_code, 'html.parser')
-        list_of_content = []
-        some_temp = soup.findAll('div', attrs={'class': 't_row'})
-        for content in some_temp:
-            list_of_content.append(content.findAll('span', attrs={'': ''}))
-        source_code.close()
-        for element in list_of_content:
-            print element[2].getText(), element[6].getText()
+        for element in self.favorite_cursor.execute(
+                'SELECT * FROM favorite ORDER BY url'):
+            print "===================="
+            print element[1]
+            get_source = Grab()
+            get_source.setup(url='https://www.lostfilm.tv' + element[2],
+                             log_file='temp.html')
+            get_source.request()
+            # Take content information about number and name of series 
+            source_code = open('temp.html', 'r')
+            soup = BeautifulSoup(source_code, 'html.parser')
+            list_of_content = []
+            some_temp = soup.findAll('div', attrs={'class': 't_row'})
+            for content in some_temp:
+                list_of_content.append(content.findAll('span', attrs={'': ''}))
+            source_code.close()
+            for element in list_of_content:
+                print element[2].getText(), element[6].getText()
+            print "===================="
 
     @staticmethod
     def exit():
@@ -149,11 +150,13 @@ def main():
     status = True
     while status:
         input_status = raw_input("(A)Add serial to favorite \
-(C)Chack new series (Q)Quit\n")
+(C)Chack new series (Q)Quit\n=> ")
         if input_status == 'Q':
             status = my_serial.exit()
         elif input_status == 'A':
             my_serial.create_favorite()
+        elif input_status == 'C':
+            my_serial.chack_update()
 
 if __name__ == "__main__":
     main()
