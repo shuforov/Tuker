@@ -5,6 +5,7 @@ import sqlite3
 from grab import Grab
 from bs4 import BeautifulSoup
 
+
 class Tuker(object):
     """ Check the new series of serial """
     def __init__(self):
@@ -122,7 +123,7 @@ to stop add type 'stop',\nto continue press Enter...\n").split(",")
             get_source.setup(url='https://www.lostfilm.tv' + element[2],
                              log_file='temp.html')
             get_source.request()
-            # Take content information about number and name of series 
+            # Take content information about number and name of series
             source_code = open('temp.html', 'r')
             soup = BeautifulSoup(source_code, 'html.parser')
             list_of_content = []
